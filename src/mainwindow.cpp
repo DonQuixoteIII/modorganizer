@@ -84,6 +84,7 @@ along with Mod Organizer.  If not, see <http://www.gnu.org/licenses/>.
 #include <taskprogressmanager.h>
 #include <scopeguard.h>
 #include <usvfs.h>
+#include "localsavegames.h"
 
 #include <QAbstractItemDelegate>
 #include <QAbstractProxyModel>
@@ -1132,6 +1133,11 @@ void MainWindow::on_profileBox_currentIndexChanged(int index)
     } else {
       activateSelectedProfile();
     }
+
+    LocalSavegames *saveGames = m_OrganizerCore.managedGame()->feature<LocalSavegames>();
+    if (saveGames != nullptr && saveGames->updateSaveGames(m_OrganizerCore.currentProfile())) {
+      refreshSaveList();
+    }
   }
 }
 
@@ -1758,6 +1764,11 @@ void MainWindow::on_btnRefreshData_clicked()
   m_OrganizerCore.refreshDirectoryStructure();
 }
 
+void MainWindow::on_btnRefreshDownloads_clicked()
+{
+  m_OrganizerCore.downloadManager()->refreshList();
+}
+
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
   if (index == 0) {
@@ -1973,6 +1984,12 @@ void MainWindow::on_actionAdd_Profile_triggered()
       break;
     }
   }
+
+  LocalSavegames *saveGames = m_OrganizerCore.managedGame()->feature<LocalSavegames>();
+  if (saveGames != nullptr && saveGames->updateSaveGames(m_OrganizerCore.currentProfile())) {
+    refreshSaveList();
+  }
+
 //  addProfile();
 }
 
@@ -2225,6 +2242,7 @@ void MainWindow::refreshFilters()
   addFilterItem(nullptr, tr("<Checked>"), CategoryFactory::CATEGORY_SPECIAL_CHECKED, ModListSortProxy::TYPE_SPECIAL);
   addFilterItem(nullptr, tr("<Unchecked>"), CategoryFactory::CATEGORY_SPECIAL_UNCHECKED, ModListSortProxy::TYPE_SPECIAL);
   addFilterItem(nullptr, tr("<Update>"), CategoryFactory::CATEGORY_SPECIAL_UPDATEAVAILABLE, ModListSortProxy::TYPE_SPECIAL);
+  addFilterItem(nullptr, tr("<Mod Backup>"), CategoryFactory::CATEGORY_SPECIAL_BACKUP, ModListSortProxy::TYPE_SPECIAL);
   addFilterItem(nullptr, tr("<Managed by MO>"), CategoryFactory::CATEGORY_SPECIAL_MANAGED, ModListSortProxy::TYPE_SPECIAL);
   addFilterItem(nullptr, tr("<Managed outside MO>"), CategoryFactory::CATEGORY_SPECIAL_UNMANAGED, ModListSortProxy::TYPE_SPECIAL);
   addFilterItem(nullptr, tr("<No category>"), CategoryFactory::CATEGORY_SPECIAL_NOCATEGORY, ModListSortProxy::TYPE_SPECIAL);
@@ -2414,6 +2432,16 @@ void MainWindow::reinstallMod_clicked()
   }
 }
 
+void MainWindow::backupMod_clicked()
+{
+  ModInfo::Ptr modInfo = ModInfo::getByIndex(m_ContextRow);
+  QString backupDirectory = m_OrganizerCore.installationManager()->generateBackupName(modInfo->absolutePath());
+  if (!copyDir(modInfo->absolutePath(), backupDirectory, false)) {
+    QMessageBox::information(this, tr("Failed"),
+      tr("Failed to create backup."));
+  }
+  m_OrganizerCore.refreshModList();
+}
 
 void MainWindow::resumeDownload(int downloadIndex)
 {
@@ -3632,6 +3660,8 @@ void MainWindow::on_modList_customContextMenuRequested(const QPoint &pos)
         menu->addAction(tr("Rename Mod..."), this, SLOT(renameMod_clicked()));
         menu->addAction(tr("Reinstall Mod"), this, SLOT(reinstallMod_clicked()));
 		    menu->addAction(tr("Remove Mod..."), this, SLOT(removeMod_clicked()));
+        menu->addAction(tr("Create Backup"), this, SLOT(backupMod_clicked()));
+
 
 		    menu->addSeparator();
 

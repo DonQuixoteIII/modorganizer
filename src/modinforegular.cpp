@@ -471,14 +471,23 @@ std::vector<ModInfo::EContent> ModInfoRegular::getContents() const
       m_CachedContent.push_back(CONTENT_INI);
     }
 
+    if (dir.entryList(QStringList() << "*.modgroups").size() > 0) {
+      m_CachedContent.push_back(CONTENT_MODGROUP);
+    }
+
     ScriptExtender *extender = qApp->property("managed_game")
                                    .value<IPluginGame *>()
                                    ->feature<ScriptExtender>();
 
     if (extender != nullptr) {
       QString sePluginPath = extender->PluginPath();
-      if (dir.exists(sePluginPath))
-        m_CachedContent.push_back(CONTENT_SKSE);
+      if (dir.exists(sePluginPath)) {
+        m_CachedContent.push_back(CONTENT_SKSEFILES);
+        QDir sePluginDir(absolutePath() + "/" + sePluginPath);
+        if (sePluginDir.entryList(QStringList() << "*.dll").size() > 0) {
+          m_CachedContent.push_back(CONTENT_SKSE);
+        }
+      }  
     }
     if (dir.exists("textures") || dir.exists("icons") || dir.exists("bookart"))
       m_CachedContent.push_back(CONTENT_TEXTURE);

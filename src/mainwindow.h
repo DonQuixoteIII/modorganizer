@@ -407,6 +407,7 @@ private slots:
   void restoreBackup_clicked();
   void renameMod_clicked();
   void removeMod_clicked();
+  void backupMod_clicked();
   void reinstallMod_clicked();
   void endorse_clicked();
   void dontendorse_clicked();
@@ -575,6 +576,7 @@ private slots: // ui slots
   void on_bsaList_customContextMenuRequested(const QPoint &pos);
   void on_clearFiltersButton_clicked();
   void on_btnRefreshData_clicked();
+  void on_btnRefreshDownloads_clicked();
   void on_categoriesList_customContextMenuRequested(const QPoint &pos);
   void on_conflictsCheckBox_toggled(bool checked);
   void on_dataTree_customContextMenuRequested(const QPoint &pos);
