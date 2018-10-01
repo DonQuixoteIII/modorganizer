@@ -49,6 +49,7 @@ Here is a complete list:
 * https://github.com/Modorganizer2/modorganizer-check_fnis
 * https://github.com/Modorganizer2/modorganizer-diagnose_basic
 * https://github.com/Modorganizer2/modorganizer-esptk
+* https://github.com/ModOrganizer2/modorganizer-fnistool
 * https://github.com/Modorganizer2/modorganizer-helper
 * https://github.com/Modorganizer2/modorganizer-game_fallout3
 * https://github.com/Modorganizer2/modorganizer-game_fallout4
@@ -60,6 +61,7 @@ Here is a complete list:
 * https://github.com/Modorganizer2/modorganizer-game_oblivion
 * https://github.com/Modorganizer2/modorganizer-game_skyrim
 * https://github.com/Modorganizer2/modorganizer-game_skyrimSE
+* https://github.com/ModOrganizer2/modorganizer-game_skyrimVR
 * https://github.com/Modorganizer2/modorganizer-game_ttw
 * https://github.com/Modorganizer2/modorganizer-installer_bain
 * https://github.com/Modorganizer2/modorganizer-installer_bundle
