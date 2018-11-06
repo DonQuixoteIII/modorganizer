@@ -65,13 +65,13 @@
               <widget class="QTreeWidget" name="categoriesList">
                <property name="minimumSize">
                 <size>
-                 <width>100</width>
+                 <width>120</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>161</width>
+                 <width>214</width>
                  <height>16777215</height>
                 </size>
                </property>
@@ -83,6 +83,9 @@
                </property>
                <property name="indentation">
                 <number>0</number>
+               </property>
+               <property name="uniformRowHeights">
+                <bool>true</bool>
                </property>
                <attribute name="headerVisible">
                 <bool>false</bool>
@@ -431,6 +434,9 @@ p, li { white-space: pre-wrap; }
               </property>
               <property name="indentation">
                <number>20</number>
+              </property>
+              <property name="uniformRowHeights">
+               <bool>true</bool>
               </property>
               <property name="itemsExpandable">
                <bool>true</bool>
@@ -825,6 +831,9 @@ p, li { white-space: pre-wrap; }
                  <layout class="QHBoxLayout" name="horizontalLayout_7">
                   <item>
                    <widget class="QPushButton" name="bossButton">
+                    <property name="visible">
+                     <bool>true</bool>
+                    </property>
                     <property name="text">
                      <string>Sort</string>
                     </property>
@@ -1039,7 +1048,7 @@ p, li { white-space: pre-wrap; }
                  </layout>
                 </item>
                 <item>
-                 <widget class="QTreeWidget" name="bsaList">
+                 <widget class="MOBase::SortableTreeWidget" name="bsaList">
                   <property name="contextMenuPolicy">
                    <enum>Qt::CustomContextMenu</enum>
                   </property>
@@ -1055,19 +1064,19 @@ p, li { white-space: pre-wrap; }
                   <property name="showDropIndicator" stdset="0">
                    <bool>false</bool>
                   </property>
-                  <property name="dragEnabled">
+                  <property name="dragEnabled" stdset="0">
                    <bool>false</bool>
                   </property>
-                  <property name="dragDropOverwriteMode">
+                  <property name="dragDropOverwriteMode" stdset="0">
                    <bool>false</bool>
                   </property>
-                  <property name="indentation">
+                  <property name="indentation" stdset="0">
                    <number>20</number>
                   </property>
-                  <property name="itemsExpandable">
+                  <property name="itemsExpandable" stdset="0">
                    <bool>true</bool>
                   </property>
-                  <property name="columnCount">
+                  <property name="columnCount" stdset="0">
                    <number>1</number>
                   </property>
                   <column>
@@ -1122,6 +1131,9 @@ p, li { white-space: pre-wrap; }
                     </property>
                     <property name="whatsThis">
                      <string>This is an overview of your data directory as visible to the game (and tools). </string>
+                    </property>
+                    <property name="uniformRowHeights">
+                     <bool>true</bool>
                     </property>
                     <property name="animated">
                      <bool>true</bool>
@@ -1371,6 +1383,9 @@ p, li { white-space: pre-wrap; }
        </property>
        <property name="selectionMode">
         <enum>QAbstractItemView::NoSelection</enum>
+       </property>
+       <property name="uniformRowHeights">
+        <bool>true</bool>
        </property>
        <property name="itemsExpandable">
         <bool>false</bool>

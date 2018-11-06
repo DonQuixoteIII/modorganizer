@@ -278,6 +278,8 @@ private:
   QString queryRestore(const QString &filePath);
 
   QMenu *modListContextMenu();
+  void addModSendToContextMenu(QMenu *menu);
+  void addPluginSendToContextMenu(QMenu *menu);
 
   QMenu *openFolderMenu();
 
@@ -293,6 +295,9 @@ private:
   void dropLocalFile(const QUrl &url, const QString &outputDir, bool move);
 
   bool registerWidgetState(const QString &name, QHeaderView *view, const char *oldSettingName = nullptr);
+
+  void sendSelectedModsToPriority(int newPriority);
+  void sendSelectedPluginsToPriority(int newPriority);
 
 private:
 
@@ -406,9 +411,12 @@ private slots:
   // modlist context menu
   void installMod_clicked();
   void createEmptyMod_clicked();
+  void createSeparator_clicked();
   void restoreBackup_clicked();
   void renameMod_clicked();
   void removeMod_clicked();
+  void setColor_clicked();
+  void resetColor_clicked();
   void backupMod_clicked();
   void reinstallMod_clicked();
   void endorse_clicked();
@@ -422,6 +430,9 @@ private slots:
   void information_clicked();
   void enableSelectedMods_clicked();
   void disableSelectedMods_clicked();
+  void sendSelectedModsToTop_clicked();
+  void sendSelectedModsToBottom_clicked();
+  void sendSelectedModsToPriority_clicked();
   // savegame context menu
   void deleteSavegame_clicked();
   void fixMods_clicked(SaveGameInfo::MissingAssets const &missingAssets);
@@ -436,6 +447,9 @@ private slots:
   // pluginlist context menu
   void enableSelectedPlugins_clicked();
   void disableSelectedPlugins_clicked();
+  void sendSelectedPluginsToTop_clicked();
+  void sendSelectedPluginsToBottom_clicked();
+  void sendSelectedPluginsToPriority_clicked();
 
   void linkToolbar();
   void linkDesktop();
@@ -586,6 +600,7 @@ private slots: // ui slots
   void on_executablesListBox_currentIndexChanged(int index);
   void on_modList_customContextMenuRequested(const QPoint &pos);
   void on_modList_doubleClicked(const QModelIndex &index);
+  void on_listOptionsBtn_pressed();
   void on_espList_doubleClicked(const QModelIndex &index);
   void on_profileBox_currentIndexChanged(int index);
   void on_savegameList_customContextMenuRequested(const QPoint &pos);

@@ -106,6 +106,7 @@ public:
   static QString getColumnName(int column);
 
   void changeModPriority(int sourceIndex, int newPriority);
+  void changeModPriority(std::vector<int> sourceIndices, int newPriority);
 
   void setOverwriteMarkers(const std::set<unsigned int> &overwrite, const std::set<unsigned int> &overwritten);
   void setPluginContainer(PluginContainer *pluginContainer);
@@ -120,7 +121,7 @@ public:
 
   int timeElapsedSinceLastChecked() const;
 
-  void highlightMods(const QItemSelection &selected, const MOShared::DirectoryEntry &directoryEntry);
+  void highlightMods(const QItemSelectionModel *selection, const MOShared::DirectoryEntry &directoryEntry);
 
 public:
 
@@ -268,8 +269,6 @@ protected:
 private:
 
   bool testValid(const QString &modDir);
-
-  void changeModPriority(std::vector<int> sourceIndices, int newPriority);
 
   QVariant getOverwriteData(int column, int role) const;
 

@@ -31,6 +31,7 @@ class QDir;
 #include <QSharedPointer>
 #include <QString>
 #include <QStringList>
+#include <QColor>
 
 #include <boost/function.hpp>
 
@@ -62,6 +63,7 @@ public:
   enum EFlag {
     FLAG_INVALID,
     FLAG_BACKUP,
+    FLAG_SEPARATOR,
     FLAG_OVERWRITE,
     FLAG_FOREIGN,
     FLAG_NOTENDORSED,
@@ -528,6 +530,16 @@ public:
    */
   virtual QStringList archives() const = 0;
 
+  /*
+   *@return the color choosen by the user for the mod/separator 
+   */
+  virtual QColor getColor() { return QColor(); }
+
+  /*
+   *@return true if the color has been set successfully.
+   */
+  virtual void setColor(QColor color) { }
+
   /**
    * @brief adds the information that a file has been installed into this mod
    * @param modId id of the mod installed
@@ -565,7 +577,7 @@ public:
   /**
    * @return true if this mod is considered "valid", that is: it contains data used by the game
    **/
-  bool isValid() const { return m_Valid; }
+  virtual bool isValid() const { return m_Valid; }
 
   /**
    * @return true if the file has been endorsed on nexus
@@ -606,7 +618,7 @@ public:
    * @return list of mods (as mod index) that overwrite this one. Updates may be delayed
    */
   virtual std::set<unsigned int> getModOverwritten() { return std::set<unsigned int>(); }
-
+  
   /**
    * @return retrieve list of mods (as mod index) with archives that are overwritten by this one. Updates may be delayed
   */

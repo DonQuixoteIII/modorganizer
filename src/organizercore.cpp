@@ -788,12 +788,12 @@ std::wstring OrganizerCore::crashDumpsPath() {
 
 bool OrganizerCore::getArchiveParsing() const
 {
-	return m_ArchiveParsing;
+  return m_ArchiveParsing;
 }
 
 void OrganizerCore::setArchiveParsing(const bool archiveParsing)
 {
-	m_ArchiveParsing = archiveParsing;
+  m_ArchiveParsing = archiveParsing;
 }
 
 void OrganizerCore::setCurrentProfile(const QString &profileName)
@@ -1193,7 +1193,9 @@ ModList *OrganizerCore::modList()
 QStringList OrganizerCore::modsSortedByProfilePriority() const
 {
   QStringList res;
-  for (unsigned int i = 0; i < currentProfile()->numRegularMods(); ++i) {
+  for (int i = currentProfile()->getPriorityMinimum();
+           i < currentProfile()->getPriorityMinimum() + (int)currentProfile()->numRegularMods();
+           ++i) {
     int modIndex = currentProfile()->modIndexByPriority(i);
     res.push_back(ModInfo::getByIndex(modIndex)->name());
   }
@@ -1342,7 +1344,7 @@ HANDLE OrganizerCore::spawnBinaryProcess(const QFileInfo &binary,
         return INVALID_HANDLE_VALUE;
       }
     }
-      
+
     QString modsPath = settings().getModDirectory();
 
     // Check if this a request with either an executable or a working directory under our mods folder
@@ -1735,7 +1737,7 @@ void OrganizerCore::refreshBSAList()
     if (m_ActiveArchives.isEmpty()) {
       m_ActiveArchives = m_DefaultArchives;
     }
-    
+
     if (m_UserInterface != nullptr) {
       m_UserInterface->updateBSAList(m_DefaultArchives, m_ActiveArchives);
     }

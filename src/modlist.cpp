@@ -24,6 +24,7 @@ along with Mod Organizer.  If not, see <http://www.gnu.org/licenses/>.
 #include "qtgroupingproxy.h"
 #include "viewmarkingscrollbar.h"
 #include "modlistsortproxy.h"
+#include "pluginlist.h"
 #include "settings.h"
 #include "modinforegular.h"
 #include <appconfig.h>
@@ -45,6 +46,7 @@ along with Mod Organizer.  If not, see <http://www.gnu.org/licenses/>.
 #include <QAbstractItemView>
 #include <QSortFilterProxyModel>
 #include <QApplication>
+#include <QFontDatabase>
 
 #include <sstream>
 #include <stdexcept>
@@ -145,6 +147,7 @@ QString ModList::getFlagText(ModInfo::EFlag flag, ModInfo::Ptr modInfo) const
 {
   switch (flag) {
     case ModInfo::FLAG_BACKUP: return tr("Backup");
+    case ModInfo::FLAG_SEPARATOR: return tr("Separator");
     case ModInfo::FLAG_INVALID: return tr("No valid game data");
     case ModInfo::FLAG_NOTENDORSED: return tr("Not endorsed yet");
     case ModInfo::FLAG_NOTES: return QString("<i>%1</i>").arg(modInfo->notes().replace("\n", "<br>"));
@@ -208,7 +211,13 @@ QVariant ModList::data(const QModelIndex &modelIndex, int role) const
         || (column == COL_CONTENT)) {
       return QVariant();
     } else if (column == COL_NAME) {
-      return modInfo->name();
+      auto flags = modInfo->getFlags();
+      if (std::find(flags.begin(), flags.end(), ModInfo::FLAG_SEPARATOR) != flags.end())
+      {
+        return modInfo->name().replace("_separator", "");
+      }
+      else
+        return modInfo->name();
     } else if (column == COL_VERSION) {
       VersionInfo verInfo = modInfo->getVersion();
       QString version = verInfo.displayString();
@@ -282,6 +291,7 @@ QVariant ModList::data(const QModelIndex &modelIndex, int role) const
       return QVariant();
     }
   } else if (role == Qt::TextAlignmentRole) {
+    auto flags = modInfo->getFlags();
     if (column == COL_NAME) {
       if (modInfo->getHighlight() & ModInfo::HIGHLIGHT_CENTER) {
         return QVariant(Qt::AlignCenter | Qt::AlignVCenter);
@@ -332,8 +342,15 @@ QVariant ModList::data(const QModelIndex &modelIndex, int role) const
     return modInfo->getGameName();
   } else if (role == Qt::FontRole) {
     QFont result;
+    auto flags = modInfo->getFlags();
     if (column == COL_NAME) {
-      if (modInfo->getHighlight() & ModInfo::HIGHLIGHT_INVALID) {
+      if (std::find(flags.begin(), flags.end(), ModInfo::FLAG_SEPARATOR) != flags.end())
+      {
+        //result.setCapitalization(QFont::AllUppercase);
+        result.setItalic(true);
+        //result.setUnderline(true);
+        result.setBold(true);
+      } else if (modInfo->getHighlight() & ModInfo::HIGHLIGHT_INVALID) {
         result.setItalic(true);
       }
     } else if ((column == COL_CATEGORY) && (modInfo->hasFlag(ModInfo::FLAG_FOREIGN))) {
@@ -372,6 +389,7 @@ QVariant ModList::data(const QModelIndex &modelIndex, int role) const
     return QVariant();
   } else if ((role == Qt::BackgroundRole)
              || (role == ViewMarkingScrollBar::DEFAULT_ROLE)) {
+    auto flags = modInfo->getFlags();
     bool overwrite = m_Overwrite.find(modIndex) != m_Overwrite.end();
     bool archiveOverwrite = m_ArchiveOverwrite.find(modIndex) != m_ArchiveOverwrite.end();
     bool archiveLooseOverwrite = m_ArchiveLooseOverwrite.find(modIndex) != m_ArchiveLooseOverwrite.end();
@@ -379,7 +397,7 @@ QVariant ModList::data(const QModelIndex &modelIndex, int role) const
     bool archiveOverwritten = m_ArchiveOverwritten.find(modIndex) != m_ArchiveOverwritten.end();
     bool archiveLooseOverwritten = m_ArchiveLooseOverwritten.find(modIndex) != m_ArchiveLooseOverwritten.end();
     if (modInfo->getHighlight() & ModInfo::HIGHLIGHT_PLUGIN) {
-      return QColor(0, 0, 255, 64);
+      return Settings::instance().modlistContainsPluginColor();
     } else if ((overwrite && (archiveOverwritten || archiveLooseOverwritten)) ||
       (overwritten && (archiveOverwrite || archiveLooseOverwrite)) ||
       (archiveOverwrite && (overwritten || archiveLooseOverwritten)) ||
@@ -387,11 +405,14 @@ QVariant ModList::data(const QModelIndex &modelIndex, int role) const
       (archiveLooseOverwrite && (overwritten || archiveOverwritten)) ||
       (archiveLooseOverwritten && (overwrite || archiveLooseOverwrite))
       ) {
-        return QColor(255, 0, 255, 64);
-    } else if (overwrite || archiveOverwrite || archiveLooseOverwrite) {
-      return QColor(0, 255, 0, 64);
+      return Settings::instance().modlistOverwrittenLooseColor();
+    }
+    else if (overwrite || archiveOverwrite || archiveLooseOverwrite) {
+      return Settings::instance().modlistOverwritingLooseColor();
     } else if (overwritten || archiveOverwritten || archiveLooseOverwritten) {
-      return QColor(255, 0, 0, 64);
+      return QColor(255, 0, 0, 64); //TODO: Make configurable
+    } else if (std::find(flags.begin(), flags.end(), ModInfo::FLAG_SEPARATOR) != flags.end() && modInfo->getColor().isValid()) {
+        return modInfo->getColor();
     } else {
       return QVariant();
     }
@@ -495,6 +516,7 @@ bool ModList::setData(const QModelIndex &index, const QVariant &value, int role)
   ModInfo::Ptr info = ModInfo::getByIndex(modID);
   IModList::ModStates oldState = state(modID);
 
+
   bool result = false;
 
   emit aboutToChangeData();
@@ -512,7 +534,13 @@ bool ModList::setData(const QModelIndex &index, const QVariant &value, int role)
   } else if (role == Qt::EditRole) {
     switch (index.column()) {
       case COL_NAME: {
-        result = renameMod(modID, value.toString());
+        auto flags = info->getFlags();
+        if (std::find(flags.begin(), flags.end(), ModInfo::FLAG_SEPARATOR) != flags.end())
+        {
+          result = renameMod(modID, value.toString() + "_separator");
+        }
+        else
+          result = renameMod(modID, value.toString());
       } break;
       case COL_PRIORITY: {
         bool ok = false;
@@ -646,26 +674,48 @@ void ModList::changeModPriority(std::vector<int> sourceIndices, int newPriority)
 
   emit layoutAboutToBeChanged();
   Profile *profile = m_Profile;
-  // sort rows to insert by their old priority (ascending) and insert them move them in that order
-  std::sort(sourceIndices.begin(), sourceIndices.end(),
-            [profile](const int &LHS, const int &RHS) {
-              return profile->getModPriority(LHS) < profile->getModPriority(RHS);
-            });
 
-  // odd stuff: if any of the dragged sources has priority lower than the destination then the
-  // target idx is that of the row BELOW the dropped location, otherwise it's the one above. why?
+  // sort the moving mods by ascending priorities
+  std::sort(sourceIndices.begin(), sourceIndices.end(),
+    [profile](const int &LHS, const int &RHS) {
+    return profile->getModPriority(LHS) > profile->getModPriority(RHS);
+  });
+
+  // move mods that are decreasing in priority
   for (std::vector<int>::const_iterator iter = sourceIndices.begin();
        iter != sourceIndices.end(); ++iter) {
-    if (profile->getModPriority(*iter) < newPriority) {
+    int oldPriority = profile->getModPriority(*iter);
+    if (oldPriority > newPriority) {
+      profile->setModPriority(*iter, newPriority);
+      m_ModMoved(ModInfo::getByIndex(*iter)->name(), oldPriority, newPriority);
+    }
+  }
+
+  // sort the moving mods by descending priorities
+  std::sort(sourceIndices.begin(), sourceIndices.end(),
+    [profile](const int &LHS, const int &RHS) {
+    return profile->getModPriority(LHS) < profile->getModPriority(RHS);
+  });
+
+  // if at least one mod is increasing in priority, the target index is
+  // that of the row BELOW the dropped location, otherwise it's the one above
+  for (std::vector<int>::const_iterator iter = sourceIndices.begin();
+    iter != sourceIndices.end(); ++iter) {
+    int oldPriority = profile->getModPriority(*iter);
+    if (oldPriority < newPriority) {
       --newPriority;
       break;
     }
   }
+
+  // move mods that are increasing in priority
   for (std::vector<int>::const_iterator iter = sourceIndices.begin();
-       iter != sourceIndices.end(); ++iter) {
-    int oldPriority = m_Profile->getModPriority(*iter);
-    m_Profile->setModPriority(*iter, newPriority);
-    m_ModMoved(ModInfo::getByIndex(*iter)->name(), oldPriority, newPriority);
+    iter != sourceIndices.end(); ++iter) {
+    int oldPriority = profile->getModPriority(*iter);
+    if (oldPriority < newPriority) {
+      profile->setModPriority(*iter, newPriority);
+      m_ModMoved(ModInfo::getByIndex(*iter)->name(), oldPriority, newPriority);
+    }
   }
 
   emit layoutChanged();
@@ -709,7 +759,7 @@ void ModList::setArchiveLooseOverwriteMarkers(const std::set<unsigned int> &over
 
 void ModList::setPluginContainer(PluginContainer *pluginContianer)
 {
-    m_PluginContainer = pluginContianer;
+  m_PluginContainer = pluginContianer;
 }
 
 bool ModList::modInfoAboutToChange(ModInfo::Ptr info)
@@ -752,18 +802,18 @@ int ModList::timeElapsedSinceLastChecked() const
   return m_LastCheck.elapsed();
 }
 
-void ModList::highlightMods(const QItemSelection &selected, const MOShared::DirectoryEntry &directoryEntry)
+void ModList::highlightMods(const QItemSelectionModel *selection, const MOShared::DirectoryEntry &directoryEntry)
 {
   for (unsigned int i = 0; i < ModInfo::getNumMods(); ++i) {
       ModInfo::getByIndex(i)->setPluginSelected(false);
   }
-  for (QModelIndex idx : selected.indexes()) {
+  for (QModelIndex idx : selection->selectedRows(PluginList::COL_NAME)) {
     QString modName = idx.data().toString();
 
     const MOShared::FileEntry::Ptr fileEntry = directoryEntry.findFile(modName.toStdWString());
     if (fileEntry.get() != nullptr) {
       bool archive = false;
-      std::vector<std::pair<int, std::pair<std::wstring, int>>> origins;
+      std::vector<std::pair<int, std::pair<std::wstring,int>>> origins;
       {
         std::vector<std::pair<int, std::pair<std::wstring, int>>> alternatives = fileEntry->getAlternatives();
         origins.insert(origins.end(), std::pair<int, std::pair<std::wstring, int>>(fileEntry->getOrigin(archive), fileEntry->getArchive()));
